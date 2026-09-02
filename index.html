@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#0F9D58">
+  <title>ArenaEquilibrada</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230F9D58'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-size='60' fill='white'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">⚽ ArenaEquilibrada</div>
+    <div class="subtitle" id="subtitle">Carregando…</div>
+  </header>
+
+  <main>
+    <section id="error-box" class="card error" hidden>
+      <h2>Não foi possível carregar</h2>
+      <p id="error-message"></p>
+      <p class="hint">Verifique se o link está correto e se a pasta do organizador está pública.</p>
+    </section>
+
+    <section id="loading" class="card center">
+      <div class="spinner"></div>
+      <p>Buscando peladas no Drive…</p>
+    </section>
+
+    <section id="empty" class="card center" hidden>
+      <h2>📭 Nenhuma pelada finalizada ainda</h2>
+      <p>Quando o organizador finalizar uma pelada, ela aparecerá aqui.</p>
+    </section>
+
+    <section id="content" hidden>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="rankings" role="tab">🏆 Ranking</button>
+        <button class="tab" data-tab="scorers" role="tab">⚽ Artilheiros</button>
+        <button class="tab" data-tab="assists" role="tab">🎯 Assistências</button>
+        <button class="tab" data-tab="history" role="tab">📋 Histórico</button>
+      </div>
+
+      <div class="tab-panel active" data-panel="rankings">
+        <div id="rankings-list"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="scorers">
+        <div id="scorers-list"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="assists">
+        <div id="assists-list"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="history">
+        <div id="history-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Gerado a partir do app ArenaEquilibrada • <span id="generated-at"></span></small>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
