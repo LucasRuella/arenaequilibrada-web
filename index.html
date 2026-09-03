@@ -14,24 +14,20 @@
     <div class="logo">⚽ ArenaEquilibrada</div>
     <div class="subtitle" id="subtitle">Carregando…</div>
   </header>
-
   <main>
     <section id="error-box" class="card error" hidden>
       <h2>Não foi possível carregar</h2>
       <p id="error-message"></p>
-      <p class="hint">Verifique se o link está correto e se a pasta do organizador está pública.</p>
+      <p class="hint">Verifique se o link está correto e tente novamente em alguns instantes.</p>
     </section>
-
     <section id="loading" class="card center">
       <div class="spinner"></div>
-      <p>Buscando peladas no Drive…</p>
+      <p>Buscando peladas…</p>
     </section>
-
     <section id="empty" class="card center" hidden>
       <h2>📭 Nenhuma pelada finalizada ainda</h2>
       <p>Quando o organizador finalizar uma pelada, ela aparecerá aqui.</p>
     </section>
-
     <section id="content" hidden>
       <div class="tabs" role="tablist">
         <button class="tab active" data-tab="rankings" role="tab">🏆 Ranking</button>
@@ -39,29 +35,13 @@
         <button class="tab" data-tab="assists" role="tab">🎯 Assistências</button>
         <button class="tab" data-tab="history" role="tab">📋 Histórico</button>
       </div>
-
-      <div class="tab-panel active" data-panel="rankings">
-        <div id="rankings-list"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="scorers">
-        <div id="scorers-list"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="assists">
-        <div id="assists-list"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="history">
-        <div id="history-list"></div>
-      </div>
+      <div class="tab-panel active" data-panel="rankings"><div id="rankings-list"></div></div>
+      <div class="tab-panel" data-panel="scorers"><div id="scorers-list"></div></div>
+      <div class="tab-panel" data-panel="assists"><div id="assists-list"></div></div>
+      <div class="tab-panel" data-panel="history"><div id="history-list"></div></div>
     </section>
   </main>
-
-  <footer>
-    <small>Gerado a partir do app ArenaEquilibrada • <span id="generated-at"></span></small>
-  </footer>
-
+  <footer><small>Gerado a partir do app ArenaEquilibrada • <span id="generated-at"></span></small></footer>
   <script src="./app.js"></script>
 </body>
 </html>
