@@ -1,8 +1,8 @@
 /* ArenaEquilibrada — PWA logic (Supabase) */
 (() => {
   'use strict';
-  const SUPABASE_URL = 'https://zfdnedvoyujcxacprrna.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_lKDQsn7yVdQfMhvigk6TBQ_Y9lV4FCh';
+  const SUPABASE_URL = 'https://jfaygnbhhminmgylkamx.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ZraTiNqO50PmBJIRxvT5rA_O3fSEBF3';
   const REST_BASE = `${SUPABASE_URL}/rest/v1`;
   const SCORING = { winPoints:3, drawPoints:1, lossPoints:0, peladaVictoryBonus:10, peladaDrawBonus:5, goalPoints:2, assistPoints:1 };
   const state = { organizerId:null, peladas:[], players:new Map(), aggregated:null };
