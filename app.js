@@ -31,12 +31,17 @@
     try {
       const rows = await fetchPeladas(state.organizerId);
       if (!rows.length) { hide($('#loading')); show($('#empty')); $('#subtitle').textContent = 'Nenhuma pelada ainda'; return; }
+      // Cada row do Supabase é uma pelada única (snapshot no formato flat:
+      // {id, date, mode, teams, games, players, ...}). A PWA trata cada
+      // row como uma pelada individual, não como um envelope {peladas:[]}.
       const all = [];
       for (const row of rows) {
         const s = row.snapshot;
-        if (!s || !s.peladas) continue;
-        for (const p of s.peladas) all.push(p);
-        if (s.players) for (const pl of s.players) state.players.set(pl.id, { name: pl.name, mainPosition: pl.mainPosition, isGoalkeeper: !!pl.isGoalkeeper });
+        if (!s || s.id == null || !Array.isArray(s.games)) continue;
+        all.push(s);
+        if (Array.isArray(s.players)) {
+          for (const pl of s.players) state.players.set(pl.id, { name: pl.name, mainPosition: pl.mainPosition, isGoalkeeper: !!pl.isGoalkeeper });
+        }
       }
       all.sort((a,b) => new Date(a.date) - new Date(b.date));
       state.peladas = all;
