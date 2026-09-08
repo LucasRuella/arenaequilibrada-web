@@ -20,6 +20,14 @@
   <header class="topbar">
     <div class="logo">⚽ ArenaEquilibrada</div>
     <div class="subtitle" id="subtitle">Carregando…</div>
+    <!-- Filtros de período (preenchidos dinamicamente pelo app.js).
+         Escondidos até as peladas serem carregadas. -->
+    <div id="filters" class="filters" hidden>
+      <label class="filter-label" for="filter-year">Ano</label>
+      <select id="filter-year" class="filter-select" aria-label="Filtrar por ano"></select>
+      <label class="filter-label" for="filter-month">Mês</label>
+      <select id="filter-month" class="filter-select" aria-label="Filtrar por mês"></select>
+    </div>
   </header>
 
   <main>
