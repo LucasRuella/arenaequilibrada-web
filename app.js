@@ -227,9 +227,14 @@
           }
         }
         for (const e of game.events || []) {
+          // Evento pode ser: (a) só gol, (b) gol + assistência,
+          // (c) só assistência (evento separado). Cada um precisa
+          // ser contabilizado de forma independente.
           if (e.scorerId && e.scorerId !== 0) {
             ensure(e.scorerId).goals++;
-            if (e.assistId) ensure(e.assistId).assists++;
+          }
+          if (e.assistId) {
+            ensure(e.assistId).assists++;
           }
         }
       }
