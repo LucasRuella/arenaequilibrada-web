@@ -9,12 +9,17 @@
     relativos (./app.js, ./styles.css, ./manifest.webmanifest) resolvam
     corretamente mesmo quando o usuário acessa /v/{uuid} (deep link).
     Sem isso, "./app.js" viraria "/v/app.js" → 404.
+
+    O "?v=2" nos assets força o navegador a invalidar o cache e baixar
+    a versão atualizada. Sem isso, o usuário ficaria preso em uma versão
+    antiga (com 👟 em vez do SVG de chuteira) por causa do cache do
+    GitHub Pages e do navegador.
   -->
   <base href="/arenaequilibrada-web/">
   <title>ArenaEquilibrada</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230F9D58'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-size='60' fill='white'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="./manifest.webmanifest?v=2">
+  <link rel="stylesheet" href="./styles.css?v=2">
 </head>
 <body>
   <header class="topbar">
@@ -77,6 +82,6 @@
     <small>Gerado a partir do app ArenaEquilibrada • <span id="generated-at"></span></small>
   </footer>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2"></script>
 </body>
 </html>
