@@ -7,22 +7,11 @@
   'use strict';
 
   // ---------- Configuração ----------
-  // IMPORTANTE: substitua os valores abaixo com as credenciais do seu
-  // projeto Supabase antes de publicar a PWA.
-  //
-  // - SUPABASE_URL: o "Project URL" do dashboard do Supabase
-  //   (Project Settings → API → Project URL)
-  // - SUPABASE_ANON_KEY: a chave "Publishable" (anon) — pode ser pública
-  //   (Project Settings → API → Publishable key / anon public)
-  //
-  // A segurança vem das RLS policies no banco, não do segredo da chave.
   const SUPABASE_URL = 'https://jfaygnbhhminmgylkamx.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ZraTiNqO50PmBJIRxvT5rA_O3fSEBF3';
 
-  // Endpoint REST do Supabase (PostgREST).
   const REST_BASE = `${SUPABASE_URL}/rest/v1`;
 
-  // Pontuação padrão (mesma do ScoringConfig do app).
   const SCORING = {
     winPoints: 3,
     drawPoints: 1,
@@ -33,11 +22,8 @@
     assistPoints: 1,
   };
 
-  // SVG inline de chuteira. Usado em vez de emoji 👟 porque o glifo
-  // varia entre sistemas (em fontes antigas cai em outro caractere).
   const SHOE_SVG = '<svg class="icon-shoe" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 16h20v3H2zM3 16V11c0-1.5 1-2.5 2.5-2.5h7C14 8.5 15 9.5 15 11l.5.5c1 1 1.5 2 1.5 3v1H3z"/><g fill="none" stroke="white" stroke-width="0.7" stroke-linecap="round"><line x1="6" y1="11" x2="13" y2="11"/><line x1="6" y1="13" x2="13" y2="13"/><line x1="6" y1="15" x2="13" y2="15"/></g><g fill="currentColor"><circle cx="5" cy="20" r="1"/><circle cx="9" cy="20" r="1"/><circle cx="13" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></g></svg>';
 
-  // Cores de time (espelha TeamColor do app).
   const TEAM_COLORS = {
     PRETO:    '#212121',
     AMARELO:  '#FFC107',
@@ -47,25 +33,22 @@
     BRANCO:   '#FAFAFA',
   };
 
-  // ---------- Estado ----------
   const state = {
     organizerId: null,
-    peladas: [], // [pelada] — TODAS (sem filtro)
-    peladasFiltered: [], // [pelada] — após aplicar filtro de período
-    players: new Map(), // id -> { name, mainPosition, isGoalkeeper }
+    peladas: [],
+    peladasFiltered: [],
+    players: new Map(),
     aggregated: null,
-    groupName: '', // nome do grupo (NICKNAME do organizador)
-    filterYear: 'all', // 'all' | 'YYYY'
-    filterMonth: 'all', // 'all' | '0-11'
+    groupName: '',
+    filterYear: 'all',
+    filterMonth: 'all',
   };
 
-  // Nomes de meses em pt-BR.
   const MONTH_NAMES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
   ];
 
-  // ---------- Helpers ----------
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
   const show = (el) => { el.hidden = false; };
@@ -82,15 +65,10 @@
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     }[c]));
 
-  // ---------- Boot ----------
   function boot() {
     const organizerId = getOrganizerIdFromUrl();
     if (!organizerId) {
       showError('Link inválido. Use o link enviado pelo organizador.');
-      return;
-    }
-    if (SUPABASE_ANON_KEY === 'SUBSTITUIR_PELA_CHAVE_PUBLISHABLE') {
-      showError('PWA não configurada. Edite o arquivo app.js e preencha SUPABASE_URL e SUPABASE_ANON_KEY.');
       return;
     }
     state.organizerId = organizerId;
@@ -98,11 +76,6 @@
   }
 
   function getOrganizerIdFromUrl() {
-    // Suporta ?v=ID, ?org=ID e /v/ID (legado).
-    //
-    // Por que priorizar "?v="?
-    // O link atual é "${viewerBaseUrl}/?v={organizerId}" — cai direto
-    // no index.html, evitando o cache agressivo do 404.html.
     const url = new URL(window.location.href);
     const qV = url.searchParams.get('v');
     if (qV) return qV;
@@ -113,7 +86,6 @@
     return null;
   }
 
-  // ---------- Carregamento ----------
   async function load() {
     try {
       const rows = await fetchPeladas(state.organizerId);
@@ -124,20 +96,15 @@
         return;
       }
 
-      // Cada row do Supabase é uma pelada única (snapshot no formato flat:
-      // {id, date, mode, teams, games, players, ...}). A PWA trata cada
-      // row como uma pelada individual, não como um envelope {peladas:[]}.
       const allPeladas = [];
       let groupName = '';
       for (const row of rows) {
         const snap = row.snapshot;
         if (!snap || snap.id == null || !Array.isArray(snap.games)) continue;
         allPeladas.push(snap);
-        // groupName é uma propriedade por pelada (mesmo valor em todas).
         if (!groupName && typeof snap.groupName === 'string' && snap.groupName.trim()) {
           groupName = snap.groupName.trim();
         }
-        // Indexa jogadores referenciados nesta pelada.
         if (Array.isArray(snap.players)) {
           for (const pl of snap.players) {
             state.players.set(pl.id, {
@@ -149,22 +116,17 @@
         }
       }
 
-      // Ordena por data ascendente.
       allPeladas.sort((a, b) => new Date(a.date) - new Date(b.date));
       state.peladas = allPeladas;
       state.groupName = groupName;
 
-      // Atualiza o topbar com o nome do grupo (se houver).
       applyGroupNameToTopbar();
 
       hide($('#loading'));
       show($('#content'));
       $('#generated-at').textContent = `atualizado ${new Date().toLocaleString('pt-BR')}`;
 
-      // Popula e renderiza os filtros de ano/mês.
       renderFilters();
-
-      // Aplica o filtro inicial e renderiza todas as listas.
       applyFilter();
     } catch (err) {
       console.error(err);
@@ -172,19 +134,18 @@
     }
   }
 
-  // Substitui "⚽ ArenaEquilibrada" no topbar pelo nome do grupo
-  // (se estiver definido) ou mantém o logo padrão.
+  // Mostra "⚽ ArenaEquilibrada · NOME_DO_GRUPO" no topbar quando há
+  // groupName, ou apenas "⚽ ArenaEquilibrada" quando não há.
   function applyGroupNameToTopbar() {
     const logo = $('.logo');
     if (!logo) return;
     if (state.groupName) {
-      logo.textContent = `⚽ ${state.groupName}`;
+      logo.textContent = `⚽ ArenaEquilibrada · ${state.groupName}`;
     } else {
       logo.textContent = '⚽ ArenaEquilibrada';
     }
   }
 
-  // Popula os <select> de ano e mês com base nas peladas disponíveis.
   function renderFilters() {
     const yearSel = $('#filter-year');
     const monthSel = $('#filter-month');
@@ -196,7 +157,7 @@
       const d = new Date(p.date);
       if (!isNaN(d)) years.add(d.getFullYear());
     }
-    const sortedYears = [...years].sort((a, b) => b - a); // mais recente primeiro
+    const sortedYears = [...years].sort((a, b) => b - a);
 
     yearSel.innerHTML = '<option value="all">Todos os anos</option>'
       + sortedYears.map((y) => `<option value="${y}">${y}</option>`).join('');
@@ -216,9 +177,6 @@
       applyFilter();
     };
 
-    // Mostra os filtros (escondidos até aqui). Se houver mais de uma
-    // pelada, sempre faz sentido; se for só uma, esconde o mês (e
-    // mantém o ano sempre visível).
     if (filtersBox) {
       if (sortedYears.length > 0) {
         show(filtersBox);
@@ -228,7 +186,6 @@
     }
   }
 
-  // Filtra state.peladas → state.peladasFiltered e re-renderiza tudo.
   function applyFilter() {
     const yearSel = $('#filter-year');
     const monthSel = $('#filter-month');
@@ -243,7 +200,6 @@
       return true;
     });
 
-    // Texto do subtitle reflete o filtro.
     const total = state.peladasFiltered.length;
     const totalAll = state.peladas.length;
     let label;
@@ -254,8 +210,6 @@
     }
     $('#subtitle').textContent = label;
 
-    // Desabilita o select de mês se "Todos os anos" estiver selecionado
-    // e o mês estiver restrito, mas mantém usável.
     if (yearSel) yearSel.disabled = false;
     if (monthSel) monthSel.disabled = false;
 
@@ -273,9 +227,7 @@
     $('#error-message').textContent = message;
   }
 
-  // ---------- Supabase REST API ----------
   async function fetchPeladas(organizerId) {
-    // PostgREST: filtra por organizer_id e ordena por pelada_date desc.
     const url = new URL(`${REST_BASE}/peladas`);
     url.searchParams.set('select', '*');
     url.searchParams.set('organizer_id', `eq.${organizerId}`);
@@ -295,7 +247,6 @@
     return res.json();
   }
 
-  // ---------- Cálculo de rankings ----------
   function computeRankings(peladas) {
     const stats = new Map();
     const ensure = (id) => {
@@ -349,9 +300,6 @@
           }
         }
         for (const e of game.events || []) {
-          // Evento pode ser: (a) só gol, (b) gol + assistência,
-          // (c) só assistência (evento separado). Cada um precisa
-          // ser contabilizado de forma independente.
           if (e.scorerId && e.scorerId !== 0) {
             ensure(e.scorerId).goals++;
           }
@@ -406,7 +354,6 @@
     return { ranking, topScorers, topAssisters };
   }
 
-  // ---------- Renderização ----------
   function setupTabs() {
     $$('.tab').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -430,9 +377,6 @@
     return 'rank';
   }
 
-  // Retorna o colorId do time ao qual o jogador pertence nesta pelada,
-  // ou null se não encontrado. Usado para mostrar a cor do time nos
-  // eventos do histórico.
   function teamColorIdForPlayer(pelada, playerId) {
     if (!pelada || !Array.isArray(pelada.teams)) return null;
     for (const t of pelada.teams) {
@@ -442,8 +386,6 @@
     return null;
   }
 
-  // Badge circular com a cor do time. Cores claras (BRANCO/AMARELO)
-  // ganham classe extra "light" para borda mais visível.
   function colorDotHtml(pelada, playerId) {
     const colorId = teamColorIdForPlayer(pelada, playerId);
     if (!colorId) return '';
@@ -593,8 +535,6 @@
     }).join('');
   }
 
-  // Recebe a pelada inteira para que possa resolver a cor do time
-  // de cada jogador mencionado nos eventos.
   function renderEvents(pelada, events) {
     if (!events || events.length === 0) return '';
     const lines = events.map((e) => {
@@ -615,7 +555,6 @@
     return lines.join('');
   }
 
-  // ---------- Start ----------
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {
