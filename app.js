@@ -33,6 +33,10 @@
     assistPoints: 1,
   };
 
+  // SVG inline de chuteira. Usado em vez de emoji 👟 porque o glifo
+  // varia entre sistemas (em fontes antigas cai em outro caractere).
+  const SHOE_SVG = '<svg class="icon-shoe" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 16h20v3H2zM3 16V11c0-1.5 1-2.5 2.5-2.5h7C14 8.5 15 9.5 15 11l.5.5c1 1 1.5 2 1.5 3v1H3z"/><g fill="none" stroke="white" stroke-width="0.7" stroke-linecap="round"><line x1="6" y1="11" x2="13" y2="11"/><line x1="6" y1="13" x2="13" y2="13"/><line x1="6" y1="15" x2="13" y2="15"/></g><g fill="currentColor"><circle cx="5" cy="20" r="1"/><circle cx="9" cy="20" r="1"/><circle cx="13" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></g></svg>';
+
   // Cores de time (espelha TeamColor do app).
   const TEAM_COLORS = {
     PRETO:    '#212121',
@@ -343,7 +347,7 @@
           <div class="${rankBadgeClass(i + 1)}">${i + 1}</div>
           <div class="list-main">
             <div class="list-name">${escapeHtml(playerName(r.playerId))}</div>
-            <div class="list-sub">V:${r.wins} E:${r.draws} D:${r.losses} • ⚽${r.goals} 👟${r.assists}</div>
+            <div class="list-sub">V:${r.wins} E:${r.draws} D:${r.losses} • ⚽${r.goals} ${SHOE_SVG} ${r.assists}</div>
           </div>
           <div class="list-value">${r.points.toFixed(0)}</div>
         </div>
@@ -383,7 +387,7 @@
           <div class="list-name">${escapeHtml(playerName(r.playerId))}</div>
           <div class="list-sub">Assistências</div>
         </div>
-        <div class="list-value">👟 ${r.assists}</div>
+        <div class="list-value">${SHOE_SVG} ${r.assists}</div>
       </div>
     `).join('');
   }
@@ -469,12 +473,12 @@
       }
       if (e.scorerId) {
         const assist = e.assistId
-          ? ` ${colorDotHtml(pelada, e.assistId)}👟 ${escapeHtml(playerName(e.assistId))}`
+          ? ` ${colorDotHtml(pelada, e.assistId)}${SHOE_SVG} ${escapeHtml(playerName(e.assistId))}`
           : '';
         return `<div class="list-sub">${colorDotHtml(pelada, e.scorerId)}⚽ ${escapeHtml(playerName(e.scorerId))}${assist}</div>`;
       }
       if (e.assistId) {
-        return `<div class="list-sub">${colorDotHtml(pelada, e.assistId)}👟 ${escapeHtml(playerName(e.assistId))}</div>`;
+        return `<div class="list-sub">${colorDotHtml(pelada, e.assistId)}${SHOE_SVG} ${escapeHtml(playerName(e.assistId))}</div>`;
       }
       return '';
     }).filter(Boolean);
