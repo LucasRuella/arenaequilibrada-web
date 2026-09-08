@@ -54,6 +54,36 @@ html, body {
   margin-top: 2px;
 }
 
+/* ---------- Filtros (Ano / Mês) ---------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.95;
+  margin-left: 4px;
+}
+.filter-select {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--on-surface);
+  cursor: pointer;
+  min-width: 0;
+}
+.filter-select:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 1px;
+}
+
 /* ---------- Layout ---------- */
 main {
   max-width: 720px;
@@ -165,12 +195,27 @@ main {
 .rank.gold   { background: var(--gold);   color: #4a3a00; }
 .rank.silver { background: var(--silver); color: #2a2a2a; }
 .rank.bronze { background: var(--bronze); color: #3a2200; }
-.list-main { flex: 1; min-width: 0; }
-.list-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.list-sub  { font-size: 12px; color: var(--on-surface-variant); }
-.list-value { font-size: 18px; font-weight: 700; color: var(--emerald); }
+.list-main {
+  flex: 1;
+  min-width: 0;
+}
+.list-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-sub {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.list-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--emerald);
+}
 
-/* ---------- Pelada cards ---------- */
+/* ---------- Histórico (peladas) ---------- */
 .pelada-card {
   background: var(--surface);
   border-radius: 12px;
@@ -179,15 +224,23 @@ main {
   margin-bottom: 10px;
   border-left: 4px solid var(--emerald);
 }
-.pelada-card.mode-KING { border-left-color: var(--gold); }
+.pelada-card.mode-KING {
+  border-left-color: var(--gold);
+}
 .pelada-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
 }
-.pelada-title { font-weight: 700; font-size: 15px; }
-.pelada-date  { font-size: 12px; color: var(--on-surface-variant); }
+.pelada-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.pelada-date {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
 .pelada-mode {
   display: inline-block;
   font-size: 11px;
@@ -211,7 +264,9 @@ main {
   font-size: 13px;
   color: var(--on-surface-variant);
 }
-.pelada-summary strong { color: var(--on-surface); }
+.pelada-summary strong {
+  color: var(--on-surface);
+}
 .pelada-toggle {
   margin-top: 10px;
   font-size: 13px;
@@ -222,23 +277,30 @@ main {
   cursor: pointer;
   font-weight: 600;
 }
-.pelada-toggle:hover { text-decoration: underline; }
+.pelada-toggle:hover {
+  text-decoration: underline;
+}
 .pelada-details {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed var(--outline);
   display: none;
 }
-.pelada-details.open { display: block; }
+.pelada-details.open {
+  display: block;
+}
 .turn {
   padding: 8px 0;
   border-bottom: 1px solid var(--outline);
   font-size: 13px;
 }
 .turn:last-child { border-bottom: none; }
-.turn-score { font-weight: 700; color: var(--emerald); }
+.turn-score {
+  font-weight: 700;
+  color: var(--emerald);
+}
 
-/* ---------- Cor do time (dot) ---------- */
+/* ---------- Cor do time (badge nos eventos) ---------- */
 .color-dot {
   display: inline-block;
   width: 10px;
