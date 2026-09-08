@@ -8,15 +8,6 @@
     <base> com caminho absoluto do GitHub Pages: garante que os paths
     relativos (./app.js, ./styles.css, ./manifest.webmanifest) resolvam
     corretamente mesmo quando o usuário acessa /v/{uuid} (deep link).
-    Sem isso, "./app.js" viraria "/v/app.js" → 404.
-
-    O "?v=2" nos assets força o navegador a invalidar o cache e baixar
-    a versão atualizada. Sem isso, o usuário ficaria preso em uma versão
-    antiga (com 👟 em vez do SVG de chuteira) por causa do cache do
-    GitHub Pages e do navegador.
-
-    As meta tags no-cache pedem ao navegador para revalidar este HTML
-    antes de usar a versão em cache.
   -->
   <base href="/arenaequilibrada-web/">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -88,6 +79,20 @@
     <small>Gerado a partir do app ArenaEquilibrada • <span id="generated-at"></span></small>
   </footer>
 
+  <script>
+    // Redireciona URLs legadas "/v/{uuid}" para "?v={uuid}".
+    // Por que: o GitHub Pages servia o 404.html para "/v/{uuid}", que
+    // era cacheado agressivamente. Direto no index.html (via ?v=) o
+    // navegador sempre pega a versão mais recente.
+    (function () {
+      var m = window.location.pathname.match(/^\/v\/([0-9a-fA-F-]+)\/?$/);
+      if (m) {
+        var id = m[1];
+        var target = window.location.origin + window.location.pathname.replace(/^\/v\/[0-9a-fA-F-]+\/?$/, '/') + '?v=' + id;
+        window.location.replace(target);
+      }
+    })();
+  </script>
   <script src="./app.js?v=2"></script>
 </body>
 </html>
