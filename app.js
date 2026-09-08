@@ -50,10 +50,20 @@
   // ---------- Estado ----------
   const state = {
     organizerId: null,
-    peladas: [], // [pelada]
+    peladas: [], // [pelada] — TODAS (sem filtro)
+    peladasFiltered: [], // [pelada] — após aplicar filtro de período
     players: new Map(), // id -> { name, mainPosition, isGoalkeeper }
     aggregated: null,
+    groupName: '', // nome do grupo (NICKNAME do organizador)
+    filterYear: 'all', // 'all' | 'YYYY'
+    filterMonth: 'all', // 'all' | '0-11'
   };
+
+  // Nomes de meses em pt-BR.
+  const MONTH_NAMES = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  ];
 
   // ---------- Helpers ----------
   const $ = (sel) => document.querySelector(sel);
@@ -112,10 +122,15 @@
       // {id, date, mode, teams, games, players, ...}). A PWA trata cada
       // row como uma pelada individual, não como um envelope {peladas:[]}.
       const allPeladas = [];
+      let groupName = '';
       for (const row of rows) {
         const snap = row.snapshot;
         if (!snap || snap.id == null || !Array.isArray(snap.games)) continue;
         allPeladas.push(snap);
+        // groupName é uma propriedade por pelada (mesmo valor em todas).
+        if (!groupName && typeof snap.groupName === 'string' && snap.groupName.trim()) {
+          groupName = snap.groupName.trim();
+        }
         // Indexa jogadores referenciados nesta pelada.
         if (Array.isArray(snap.players)) {
           for (const pl of snap.players) {
@@ -131,22 +146,116 @@
       // Ordena por data ascendente.
       allPeladas.sort((a, b) => new Date(a.date) - new Date(b.date));
       state.peladas = allPeladas;
-      state.aggregated = computeRankings(allPeladas);
+      state.groupName = groupName;
+
+      // Atualiza o topbar com o nome do grupo (se houver).
+      applyGroupNameToTopbar();
 
       hide($('#loading'));
       show($('#content'));
-      $('#subtitle').textContent = `${allPeladas.length} pelada${allPeladas.length === 1 ? '' : 's'} finalizada${allPeladas.length === 1 ? '' : 's'}`;
       $('#generated-at').textContent = `atualizado ${new Date().toLocaleString('pt-BR')}`;
 
-      renderRankings();
-      renderScorers();
-      renderAssists();
-      renderHistory();
-      setupTabs();
+      // Popula e renderiza os filtros de ano/mês.
+      renderFilters();
+
+      // Aplica o filtro inicial e renderiza todas as listas.
+      applyFilter();
     } catch (err) {
       console.error(err);
       showError(err.message || String(err));
     }
+  }
+
+  // Substitui "⚽ ArenaEquilibrada" no topbar pelo nome do grupo
+  // (se estiver definido) ou mantém o logo padrão.
+  function applyGroupNameToTopbar() {
+    const logo = $('.logo');
+    if (!logo) return;
+    if (state.groupName) {
+      logo.textContent = `⚽ ${state.groupName}`;
+    } else {
+      logo.textContent = '⚽ ArenaEquilibrada';
+    }
+  }
+
+  // Popula os <select> de ano e mês com base nas peladas disponíveis.
+  function renderFilters() {
+    const yearSel = $('#filter-year');
+    const monthSel = $('#filter-month');
+    const filtersBox = $('#filters');
+    if (!yearSel || !monthSel) return;
+
+    const years = new Set();
+    for (const p of state.peladas) {
+      const d = new Date(p.date);
+      if (!isNaN(d)) years.add(d.getFullYear());
+    }
+    const sortedYears = [...years].sort((a, b) => b - a); // mais recente primeiro
+
+    yearSel.innerHTML = '<option value="all">Todos os anos</option>'
+      + sortedYears.map((y) => `<option value="${y}">${y}</option>`).join('');
+
+    monthSel.innerHTML = '<option value="all">Todos os meses</option>'
+      + MONTH_NAMES.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+
+    yearSel.value = state.filterYear;
+    monthSel.value = state.filterMonth;
+
+    yearSel.onchange = () => {
+      state.filterYear = yearSel.value;
+      applyFilter();
+    };
+    monthSel.onchange = () => {
+      state.filterMonth = monthSel.value;
+      applyFilter();
+    };
+
+    // Mostra os filtros (escondidos até aqui). Se não houver peladas
+    // com data válida, mantém escondidos.
+    if (filtersBox) {
+      if (sortedYears.length > 0) {
+        show(filtersBox);
+      } else {
+        hide(filtersBox);
+      }
+    }
+  }
+
+  // Filtra state.peladas → state.peladasFiltered e re-renderiza tudo.
+  function applyFilter() {
+    const yearSel = $('#filter-year');
+    const monthSel = $('#filter-month');
+    const hasYear = state.filterYear !== 'all';
+    const hasMonth = state.filterMonth !== 'all';
+
+    state.peladasFiltered = state.peladas.filter((p) => {
+      const d = new Date(p.date);
+      if (isNaN(d)) return false;
+      if (hasYear && d.getFullYear() !== Number(state.filterYear)) return false;
+      if (hasMonth && d.getMonth() !== Number(state.filterMonth)) return false;
+      return true;
+    });
+
+    // Texto do subtitle reflete o filtro.
+    const total = state.peladasFiltered.length;
+    const totalAll = state.peladas.length;
+    let label;
+    if (total === totalAll) {
+      label = `${total} pelada${total === 1 ? '' : 's'} finalizada${total === 1 ? '' : 's'}`;
+    } else {
+      label = `${total} de ${totalAll} pelada${totalAll === 1 ? '' : 's'} no período`;
+    }
+    $('#subtitle').textContent = label;
+
+    if (yearSel) yearSel.disabled = false;
+    if (monthSel) monthSel.disabled = false;
+
+    state.aggregated = computeRankings(state.peladasFiltered);
+    renderRankings();
+    renderScorers();
+    renderAssists();
+    renderHistory();
+    setupTabs();
   }
 
   function showError(message) {
@@ -336,8 +445,8 @@
 
   function renderRankings() {
     const list = $('#rankings-list');
-    if (!state.aggregated.ranking.length) {
-      list.innerHTML = '<p class="hint">Sem dados ainda.</p>';
+    if (!state.aggregated || !state.aggregated.ranking.length) {
+      list.innerHTML = '<p class="hint">Sem dados no período selecionado.</p>';
       return;
     }
     list.innerHTML = state.aggregated.ranking
@@ -356,9 +465,13 @@
 
   function renderScorers() {
     const list = $('#scorers-list');
+    if (!state.aggregated) {
+      list.innerHTML = '<p class="hint">Sem dados no período selecionado.</p>';
+      return;
+    }
     const top = state.aggregated.topScorers;
     if (!top.length) {
-      list.innerHTML = '<p class="hint">Nenhum gol registrado ainda.</p>';
+      list.innerHTML = '<p class="hint">Nenhum gol registrado no período.</p>';
       return;
     }
     list.innerHTML = top.map((r, i) => `
@@ -375,9 +488,13 @@
 
   function renderAssists() {
     const list = $('#assists-list');
+    if (!state.aggregated) {
+      list.innerHTML = '<p class="hint">Sem dados no período selecionado.</p>';
+      return;
+    }
     const top = state.aggregated.topAssisters;
     if (!top.length) {
-      list.innerHTML = '<p class="hint">Nenhuma assistência registrada ainda.</p>';
+      list.innerHTML = '<p class="hint">Nenhuma assistência no período.</p>';
       return;
     }
     list.innerHTML = top.map((r, i) => `
@@ -394,11 +511,15 @@
 
   function renderHistory() {
     const list = $('#history-list');
-    if (!state.peladas.length) {
-      list.innerHTML = '<p class="hint">Sem peladas finalizadas.</p>';
+    const peladas = state.peladasFiltered;
+    if (!peladas.length) {
+      const msg = state.peladas.length === 0
+        ? 'Sem peladas finalizadas.'
+        : 'Nenhuma pelada no período selecionado.';
+      list.innerHTML = `<p class="hint">${msg}</p>`;
       return;
     }
-    list.innerHTML = state.peladas.map((p, idx) => {
+    list.innerHTML = peladas.map((p, idx) => {
       const turns = (p.games || []).length;
       const totalGoals = (p.games || []).reduce(
         (acc, g) => acc + g.homeScore + g.awayScore, 0,
