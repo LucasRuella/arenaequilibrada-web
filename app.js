@@ -98,8 +98,14 @@
   }
 
   function getOrganizerIdFromUrl() {
-    // Suporta ?org=ID e /v/ID
+    // Suporta ?v=ID, ?org=ID e /v/ID (legado).
+    //
+    // Por que priorizar "?v="?
+    // O link atual é "${viewerBaseUrl}/?v={organizerId}" — cai direto
+    // no index.html, evitando o cache agressivo do 404.html.
     const url = new URL(window.location.href);
+    const qV = url.searchParams.get('v');
+    if (qV) return qV;
     const queryOrg = url.searchParams.get('org');
     if (queryOrg) return queryOrg;
     const m = window.location.pathname.match(/\/v\/([0-9a-fA-F-]+)/);
@@ -210,8 +216,9 @@
       applyFilter();
     };
 
-    // Mostra os filtros (escondidos até aqui). Se não houver peladas
-    // com data válida, mantém escondidos.
+    // Mostra os filtros (escondidos até aqui). Se houver mais de uma
+    // pelada, sempre faz sentido; se for só uma, esconde o mês (e
+    // mantém o ano sempre visível).
     if (filtersBox) {
       if (sortedYears.length > 0) {
         show(filtersBox);
@@ -247,6 +254,8 @@
     }
     $('#subtitle').textContent = label;
 
+    // Desabilita o select de mês se "Todos os anos" estiver selecionado
+    // e o mês estiver restrito, mas mantém usável.
     if (yearSel) yearSel.disabled = false;
     if (monthSel) monthSel.disabled = false;
 
